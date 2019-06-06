@@ -9,6 +9,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.vpinfotech.cmsportalapp.cmsapp.common.service.RestApiEndpointService;
 import com.vpinfotech.cmsportalapp.cmsapp.model.User;
 
 @RestController
@@ -30,23 +32,36 @@ public class LoginController {
 	@Autowired
 	private RestTemplate restTemplate;
 	
+	@Autowired
+	RestApiEndpointService restApiEndpointService;
+	
+	
+	
 	@SuppressWarnings("unchecked")
-	@RequestMapping(method= RequestMethod.GET, value="/login")
-	public <HttpResponse> ResponseEntity<ObjectNode> isUserAuthorize(@RequestBody HttpRequest request, HttpResponse response){
+	@RequestMapping(method= RequestMethod.POST, value="/login")
+	public <HttpResponse> ResponseEntity<ObjectNode> isUserAuthorize(@RequestBody User user){
 		ResponseEntity<ObjectNode> responseEntity=null;
-		String url="localhost:8772/cmsportal/user/login";
-		
+		String loginServiceEndPoint=restApiEndpointService.getLoginService();
+		logger.info("LoginController: isUserAuthorize()->Hello Ujjawal");
 		try{
+		
 			JsonNodeFactory nodeFactory= new JsonNodeFactory(true);
-			HttpHeaders headers = new HttpHeaders();
+			ObjectNode request= nodeFactory.objectNode();
+			HttpHeaders headers = new HttpHeaders();			
+			HttpResponse response;			
+			String apiurl=loginServiceEndPoint+"user/login";
 	        headers.setContentType(MediaType.APPLICATION_JSON);
-	        HttpEntity<String> requestEntity = new HttpEntity<String>(nodeFactory.objectNode().toString(), headers);
-			responseEntity= restTemplate.exchange(url, HttpMethod.GET, requestEntity, ObjectNode.class);
-			response=(HttpResponse) responseEntity.getBody();
+	        request.put("userid", user.getUserId());
+	        request.put("password", user.getPassword());
+	        HttpEntity<ObjectNode> requestEntity = new HttpEntity<ObjectNode>(request, headers);
+			ResponseEntity<ObjectNode>res= restTemplate.exchange(apiurl, HttpMethod.GET, requestEntity, ObjectNode.class);
+			response=(HttpResponse) res.getBody();
+			responseEntity= new ResponseEntity<ObjectNode>( (ObjectNode) response, HttpStatus.OK);
 			logger.info("Response: "+response);
 			
 		}catch(Exception ex){
 			logger.info("LoginController: isUserAuthorize()->Unable to Consume Rest API....");
+			responseEntity= new ResponseEntity<ObjectNode>(HttpStatus.BAD_REQUEST);
 		}
 		return responseEntity;
 	}
