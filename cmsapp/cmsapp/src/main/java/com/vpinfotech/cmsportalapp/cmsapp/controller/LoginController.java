@@ -49,12 +49,12 @@ public class LoginController {
 			ObjectNode request= nodeFactory.objectNode();
 			HttpHeaders headers = new HttpHeaders();			
 			HttpResponse response;			
-			String apiurl=loginServiceEndPoint+"user/login";
+			String apiurl=loginServiceEndPoint+"/user/login";
 	        headers.setContentType(MediaType.APPLICATION_JSON);
-	        request.put("userid", user.getUserId());
+	        request.put("userId", user.getUserId());
 	        request.put("password", user.getPassword());
 	        HttpEntity<ObjectNode> requestEntity = new HttpEntity<ObjectNode>(request, headers);
-			ResponseEntity<ObjectNode>res= restTemplate.exchange(apiurl, HttpMethod.GET, requestEntity, ObjectNode.class);
+			ResponseEntity<ObjectNode>res= restTemplate.exchange(apiurl, HttpMethod.POST, requestEntity, ObjectNode.class);
 			response=(HttpResponse) res.getBody();
 			responseEntity= new ResponseEntity<ObjectNode>( (ObjectNode) response, HttpStatus.OK);
 			logger.info("Response: "+response);
